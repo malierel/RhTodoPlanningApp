@@ -1,0 +1,9 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+httpx==0.25.2
+pydantic==2.5.0
+aw-client==0.5.13
+python-dotenv==1.0.0
+icalendar==5.0.11
+python-multipart==0.0.6
+jira==3.5.2
