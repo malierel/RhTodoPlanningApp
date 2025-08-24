@@ -1,6 +1,14 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain } from 'electron'
+import { app, BrowserWindow, Menu, Tray, nativeImage, ipcMain, shell, Notification } from 'electron'
 import { join } from 'path'
-import { is } from '@electron-toolkit/utils'
+
+// Add a custom property to the app object
+declare global {
+  namespace Electron {
+    interface App {
+      isQuiting?: boolean
+    }
+  }
+}
 
 // Keep a global reference of the window object
 let mainWindow: BrowserWindow | null = null
@@ -15,7 +23,7 @@ function createWindow(): void {
     height: 600,
     show: false,
     autoHideMenuBar: true,
-    icon: join(__dirname, '../../resources/icon.png'),
+    icon: join(__dirname, '../../assets/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -34,10 +42,10 @@ function createWindow(): void {
   })
 
   // Load the app
-  if (isDevelopment && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (isDevelopment) {
+    mainWindow.loadURL('http://localhost:5173')
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, '../dist/index.html'))
   }
 
   // Handle window closed
@@ -57,8 +65,17 @@ function createWindow(): void {
 
 function createTray(): void {
   // Create tray icon
-  const icon = nativeImage.createFromPath(join(__dirname, '../../resources/tray-icon.png'))
-  tray = new Tray(icon.resize({ width: 16, height: 16 }))
+  const icon = nativeImage.createEmpty()
+  // For demo purposes, create a simple colored icon
+  // In production, you'd use actual icon files
+  icon.addRepresentation({
+    scaleFactor: 1.0,
+    width: 16,
+    height: 16,
+    buffer: Buffer.alloc(16 * 16 * 4, 100) // Simple gray icon
+  })
+  
+  tray = new Tray(icon)
   
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -152,6 +169,5 @@ ipcMain.handle('show-notification', (_, title: string, body: string) => {
   new Notification({
     title,
     body,
-    icon: join(__dirname, '../../resources/icon.png')
   }).show()
 })
